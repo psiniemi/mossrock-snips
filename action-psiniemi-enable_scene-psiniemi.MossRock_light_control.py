@@ -6,7 +6,7 @@ from hermes_python.hermes import Hermes
 from hermes_python.ffi.utils import MqttOptions
 from hermes_python.ontology import *
 import io
-import http.client
+import mossrock as mr
 
 CONFIGURATION_ENCODING_FORMAT = "utf-8"
 CONFIG_INI = "config.ini"
@@ -31,21 +31,7 @@ def subscribe_intent_callback(hermes, intentMessage):
 
 
 def action_wrapper(hermes, intentMessage, conf):
-    scene_alias = intentMessage.slots.scene_name.first().value
-    scene = scene_alias
-    if scene_alias == "on":
-      scene = "all_on"
-    elif scene_alias == "off":
-      scene = "all_off"
-    
-    conn = http.client.HTTPConnection("192.168.86.167", 8088)
-    conn.request("GET", "/scene/" + scene)
-    resp = conn.getresponse()
-    
-    resp_msg = "failed"
-    if resp.status == 200:
-      resp_msg = "ok"
-    
+    resp_msg = mr.send_scene_command(mr.get_scene_name(intentMessage))
     hermes.publish_end_session(intentMessage.session_id, resp_msg)
     
 
